@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emotion-Based Music Recommender</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #121212;
+            color: #fff;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #1DB954;
+        }
+
+        video,
+        canvas {
+            border-radius: 8px;
+            margin: 1rem auto;
+            display: block;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            background: #1DB954;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background: #1ed760;
+        }
+
+        .results {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1rem;
+            width: 250px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 0.8rem;
+        }
+
+        .card audio {
+            width: 100%;
+            margin-top: 0.8rem;
+        }
+
+        .card h4 {
+            margin: 0.5rem 0 0.2rem;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            margin: 0.2rem 0;
+            color: #ccc;
+        }
+
+        .card a {
+            display: block;
+            margin-top: 0.7rem;
+            color: #1DB954;
+            text-decoration: none;
+        }
+
+        .summary {
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎧 Emotion-Based Music Recommender</h1>
+    <video id="video" width="400" autoplay></video>
+    <canvas id="canvas" width="400" height="300" style="display: none;"></canvas>
+    <button onclick="captureAndSend()">Detect Emotion & Get Songs</button>
+    <div class="summary" id="summary"></div>
+    <div class="results" id="results"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const resultsDiv = document.getElementById('results');
+        const summaryDiv = document.getElementById('summary');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            });
+
+        function captureAndSend() {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            fetch('/detect-emotion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    const { emotion, genre, tracks } = data;
+
+                    summaryDiv.innerHTML = `
+            <h3>🧠 Detected Emotion: <span style="color: #1DB954">${emotion}</span></h3>
+            <h4>🎵 Recommended Genre: ${genre}</h4>
+          `;
+
+                    let html = '';
+                    tracks.forEach(track => {
+                        html += `
+              <div class="card">
+                <img src="${track.image}" alt="${track.name}" />
+                <h4>${track.name}</h4>
+                <p>${track.artist}</p>
+                ${track.preview ? `
+                  <audio controls>
+                    <source src="${track.preview}" type="audio/mpeg" />
+                    Your browser does not support audio.
+                  </audio>
+                ` : `<p style="font-size: 0.85rem; color: #aaa;">No preview available</p>`}
+                <a href="${track.url}" target="_blank">🔗 Listen on Spotify</a>
+              </div>`;
+                    });
+
+                    resultsDiv.innerHTML = html;
+                })
+                .catch(err => {
+                    resultsDiv.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
+                });
+        }
+    </script>
+</body>
+
+</html>

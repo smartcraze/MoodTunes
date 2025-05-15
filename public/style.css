@@ -1,0 +1,29 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+  background: #f9f9f9;
+}
+
+h1 {
+  color: #333;
+}
+
+#result {
+  font-size: 16px;
+  color: #222;
+}
+
+.track {
+  margin: 8px 0;
+}
+
+.track a {
+  color: #1db954;
+  text-decoration: none;
+}
+
+.track a:hover {
+  text-decoration: underline;
+}
