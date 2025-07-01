@@ -1,5 +1,5 @@
 
-# Emotion-Based Music Recommender
+# smart well-being companion
 
 A FastAPI app that detects your emotion via webcam and suggests Spotify songs based on that emotion — with music previews playable right in the browser.
 
